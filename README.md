@@ -1,4 +1,4 @@
-**⚡ Simple Electricity Bill Calculator**
+** Simple Electricity Bill Calculator**
 
 Hi, This is a straightforward, lightweight web app built with **PHP** and **Bootstrap 4** that helps you figure out how much electricity your appliances are gulping down. 
 
@@ -6,7 +6,7 @@ Just punch in the voltage, current, and your local tariff rate, and it instantly
 
 ---
 
-**🚀 What it does**
+** What it does**
 * **No lost data:** If you make a typo or get an error, the form holds onto what you typed so you don’t have to keep re-entering it (sticky fields).
 * **Instant breakdown:** Gives you a clear 24-hour table mapping out Power (kW), Hourly Energy (kWh), and the Total Cost in RM.
 * **Basic protection:** Validates inputs on the backend to make sure nobody breaks the math with letters or empty spaces.
@@ -14,7 +14,7 @@ Just punch in the voltage, current, and your local tariff rate, and it instantly
 
 ---
 
-**🧮 The Math Behind It**
+** The Math Behind It**
 The app handles the math using standard electrical formulas. Here is how it calculates your bill step-by-step:
 
 1. **Find the Power ($P$):**
@@ -29,7 +29,7 @@ The app handles the math using standard electrical formulas. Here is how it calc
 
 ---
 
-**🛠️ How to get it running locally**
+** How to get it running locally**
 
 **What you need:**
 * PHP 7.4 or newer running on your machine.
