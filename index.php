@@ -1,122 +1,155 @@
-<?php
-
-
-// Function: calculate power (Wh) from voltage and current
-function calculatePower($voltage, $current) {
-    return $voltage * $current; // Power (Wh) = Voltage (V) * Current (A)
-}
-
-// Function: calculate energy (kWh) for a given hour
-function calculateEnergy($powerWh, $hour) {
-    // Energy (kWh) = Power (Wh) * Hour / 1000
-    return ($powerWh * $hour) / 1000;
-}
-
-// Function: calculate total charge (RM) based on rate (sen/kWh)
-function calculateTotal($energyKwh, $rate) {
-    // Total (RM) = Energy (kWh) * (rate / 100)
-    return $energyKwh * ($rate / 100);
-}
-
-// Default values
-$voltage = '';
-$current = '';
-$rate    = '';
-$results = [];
-$powerWh = 0;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $voltage = isset($_POST['voltage']) ? floatval($_POST['voltage']) : 0;
-    $current = isset($_POST['current']) ? floatval($_POST['current']) : 0;
-    $rate    = isset($_POST['rate']) ? floatval($_POST['rate']) : 0;
-
-    $powerWh = calculatePower($voltage, $current);
-
-    for ($hour = 1; $hour <= 24; $hour++) {
-        $energy = calculateEnergy($powerWh, $hour);
-        $total  = calculateTotal($energy, $rate);
-        $results[] = [
-            'hour'   => $hour,
-            'energy' => $energy,
-            'total'  => $total,
-        ];
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Electricity Bill Calculator</title>
     <meta charset="UTF-8">
-    <title>Kira Elektrik - Electricity Bill Calculator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/css/bootstrap.min.css">
-    <style>
-        body { background-color: #f4f6f9; padding-top: 40px; padding-bottom: 40px; }
-        .calc-card { max-width: 900px; margin: 0 auto; }
-        .summary-box { background: #e9f5ff; border-radius: 8px; padding: 15px; margin-top: 15px; }
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+     <style>
+        .custom-box {
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            padding: 10px;
+        }
     </style>
+
+    
+
 </head>
 <body>
-<div class="container calc-card">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h3 class="card-title text-center mb-4">Kira Elektrik (Electricity Calculator)</h3>
 
-            <form method="POST" action="">
-                <div class="form-row">
-                    <div class="form-group col-md-4">
-                        <label for="voltage">Voltage (V)</label>
-                        <input type="number" step="any" class="form-control" id="voltage" name="voltage"
-                               value="<?php echo htmlspecialchars($voltage); ?>" required>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <label for="current">Current (A)</label>
-                        <input type="number" step="any" class="form-control" id="current" name="current"
-                               value="<?php echo htmlspecialchars($current); ?>" required>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <label for="rate">Current Rate (sen/kWh)</label>
-                        <input type="number" step="any" class="form-control" id="rate" name="rate"
-                               value="<?php echo htmlspecialchars($rate); ?>" required>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary px-5">Calculate</button>
-                </div>
-            </form>
+<?php
+session_start();
 
-            <?php if (!empty($results)): ?>
-                <div class="summary-box">
-                    <strong>POWER :</strong> <?php echo round($powerWh / 1000, 5); ?> kW
-                    &nbsp;&nbsp;|&nbsp;&nbsp;
-                    <strong>RATE :</strong> <?php echo round($rate / 100, 3); ?> RM
-                </div>
+$error = '';
 
-                <div class="table-responsive mt-3">
-                    <table class="table table-bordered table-striped text-center">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Hour</th>
-                                <th>Energy (kWh)</th>
-                                <th>TOTAL (RM)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($results as $row): ?>
-                                <tr>
-                                    <td><?php echo $row['hour']; ?></td>
-                                    <td><?php echo $row['hour']; ?></td>
-                                    <td><?php echo round($row['energy'], 5); ?></td>
-                                    <td><?php echo round($row['total'], 2); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+// handle form submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
+
+    $voltage = trim($_POST['voltage']);
+    $current = trim($_POST['current']);
+    $rate    = trim($_POST['rate']);
+
+    // validate: must not be empty and must be numeric
+    if ($voltage === '' || $current === '' || $rate === '' ||
+        !is_numeric($voltage) || !is_numeric($current) || !is_numeric($rate)) {
+
+        // clear any previous result
+        unset($_SESSION['voltage'], $_SESSION['current'], $_SESSION['rate']);
+        $_SESSION['error'] = 'Please fill in all fields with valid numbers.';
+
+        header("Location: index.php");
+        exit();
+    }
+
+    // save data into session
+    $_SESSION['voltage'] = $voltage;
+    $_SESSION['current'] = $current;
+    $_SESSION['rate']    = $rate;
+    unset($_SESSION['error']);
+
+    // redirect so refresh won't resubmit the form
+    header("Location: index.php?calculated=1");
+    exit();
+}
+
+if (isset($_SESSION['error'])) {
+    $error = $_SESSION['error'];
+    unset($_SESSION['error']);
+}
+
+// if user opens the page fresh (no ?calculated=1), clear old result
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_GET['calculated'])) {
+    unset($_SESSION['voltage'], $_SESSION['current'], $_SESSION['rate']);
+}
+
+?>
+
+<div class="container mt-5">
+
+    <form method="POST" action="index.php">
+
+        <div class="container mt-3 text-center">
+             <h1>Calculate</h1>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label><b>Voltage</b></label>
+            <input type="text" name="voltage" class="form-control" placeholder="Voltage (V)">
+        </div>
+
+        <div class="form-group">
+            <label><b>Current</b></label>
+            <input type="text" name="current" class="form-control" placeholder="Ampere (A)">
+        </div>
+
+        <div class="form-group">
+            <label><b>CURRENT RATE</b></label>
+            <input type="text" name="rate" class="form-control" placeholder="sen/kWh">
+        </div>
+
+        <div class="text-center">
+            <button type="submit" name="calculate" class="btn btn-primary">calculate</button>
+        </div>
+
+    </form>
+
+    <br>
+
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
+
+    <?php
+    if (isset($_GET['calculated']) && isset($_SESSION['voltage'])) {
+
+        // get value from session
+        $voltage = $_SESSION['voltage'];
+        $current = $_SESSION['current'];
+        $rate    = $_SESSION['rate'];
+
+        // calculate power
+        $power = $voltage * $current; // power in Wh
+    ?>
+<div class="text-center custom-box mb-5">
+    <p><b>POWER :</b> <?php echo round($power / 1000, 5); ?>kw</p>
+    <p><b>RATE :</b> <?php echo round($rate / 100, 3); ?>RM</p>
 </div>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>#</th>
+            <th>Hour</th>
+            <th>Energy (kWh)</th>
+            <th>TOTAL (RM)</th>
+        </tr>
+
+        <?php
+        // loop for 24 hours
+        for ($hour = 1; $hour <= 24; $hour++) {
+
+            $energy = ($power * $hour) / 1000; // energy in kWh
+            $total = $energy * ($rate / 100); // total in RM
+        ?>
+        <tr>
+            <td><?php echo $hour; ?></td>
+            <td><?php echo $hour; ?></td>
+            <td><?php echo round($energy, 5); ?></td>
+            <td><?php echo round($total, 2); ?></td>
+        </tr>
+        <?php } ?>
+    </table>
+
+   
+
+    <?php } ?>
+
+</div>
+
 </body>
 </html>
