@@ -23,6 +23,24 @@
 <body>
 
 <?php
+
+
+// Funcion Added
+
+function calculatePower($voltage, $current) {
+    return $voltage * $current;
+}
+
+function calculateEnergy($power_watts, $hours) {
+    return ($power_watts * $hours) / 1000;
+}
+
+function calculateCost($energy_kwh, $rate_sen) {
+    return $energy_kwh * ($rate_sen / 100);
+}
+
+
+
 // Initialize form variable defaults
 $voltage = '';
 $current = '';
@@ -98,8 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
 
     <?php
     if ($show_results) {
-        // Calculate power (Watts)
-        $power = $voltage * $current; 
+        // Use function to calculate power
+        $power = calculatePower($voltage, $current);
     ?>
 
     <div class="text-center custom-box mb-5">
@@ -118,10 +136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
         </thead>
         <tbody>
             <?php
-            // Generate a row mapping metrics hour-by-hour for a 24-hour bracket
             for ($hour = 1; $hour <= 24; $hour++) {
-                $energy = ($power * $hour) / 1000; 
-                $total  = $energy * ($rate / 100); 
+                // Use functions to calculate energy and cost
+                $energy = calculateEnergy($power, $hour);
+                $total  = calculateCost($energy, $rate);
             ?>
             <tr>
                 <td><?php echo $hour; ?></td>
