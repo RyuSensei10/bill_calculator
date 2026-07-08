@@ -30,6 +30,12 @@ $rate    = '';
 $error   = '';
 $show_results = false;
 
+// Handle Clear button
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear'])) {
+    header("Location: index.php");
+    exit();
+}
+
 // Handle form submit directly inside the POST request lifecycle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
 
@@ -37,13 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
     $current = trim($_POST['current']);
     $rate    = trim($_POST['rate']);
 
-    // Validate: must not be empty and must be numeric
+    // Validate the value, value must not be empty and must be numeric
     if ($voltage === '' || $current === '' || $rate === '' ||
         !is_numeric($voltage) || !is_numeric($current) || !is_numeric($rate)) {
         
         $error = 'Please fill in all fields with valid numbers.';
     } else {
-        // Validation passes; set flag to show results immediately without a redirect
+        // Validation passes
         $show_results = true;
     }
 }
@@ -76,8 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
         </div>
 
         <div class="text-center mt-4">
-            <button type="submit" name="calculate" class="btn btn-primary px-4">calculate</button>
+            <button type="submit" name="calculate" class="btn btn-primary px-4 mr-2">calculate</button>
+             <button type="submit" name="clear" class="btn btn-primary px-4">Clear</button>
         </div>
+
+    
 
     </form>
 
@@ -98,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
         <p class="mb-0 text-dark-blue"><b>RATE :</b> <?php echo round($rate / 100, 3); ?> RM</p>
     </div>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered ">
         <thead class="thead-light">
             <tr>
                 <th>#</th>
